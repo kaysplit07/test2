@@ -78,10 +78,10 @@ jobs:
     - name: Parse Subnet Information
       id: parse_subnet
       run: |
-        subnetNameWVM=$(jq -r '.subnetNameWVM' <<< '${{ inputs.subnetInfo }}')
-        subnetNameWVM2=$(jq -r '.subnetNameWVM2' <<< '${{ inputs.subnetInfo }}')
-        echo "::set-output name=subnetNameWVM::${subnetNameWVM}"
-        echo "::set-output name=subnetNameWVM2::${subnetNameWVM2}"
+        subnetNameWVM=$(echo '${{ inputs.subnetInfo }}' | jq -r '.subnetNameWVM')
+          subnetNameWVM2=$(echo '${{ inputs.subnetInfo }}' | jq -r '.subnetNameWVM2')
+          echo "subnetNameWVM=${subnetNameWVM}" >> $GITHUB_OUTPUT
+          echo "subnetNameWVM2=${subnetNameWVM2}" >> $GITHUB_OUTPUT
   resource_group:
     if: ${{ github.event.inputs.requesttype == 'Create (with New RG)' }}
     needs: parse_inputs
