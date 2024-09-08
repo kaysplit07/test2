@@ -1,3 +1,12 @@
+purpose     = try(
+                      (inst.purpose == "" ? 
+                        local.variables_row.purpose : 
+                        inst.purpose), 
+                      local.variables_row.purpose
+                    )
+
+
+
 variable "purpose" {
   type        = string
   default     = "default"
