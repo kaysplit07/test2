@@ -1,0 +1,226 @@
+name: 'Manage Key Vault'
+run-name: '${{github.actor}}'
+on:
+    workflow_call:
+      inputs:
+        requestType:
+          type: choice
+          required: true
+          options:
+            - create
+            - destroy
+        location:
+          type: string
+          required: true
+        environment:
+          type: string
+          required: true
+        purpose:
+          type: string
+          required: true
+        purposeRG:
+          type: string
+          required: true
+        subnetNamePrivateEndpoint:
+          type: string
+          required: true
+        subnetNameSvcEndpoint:
+          type: string
+          required: false
+        ipRules:
+          type: string
+          required: true
+        sku:
+          type: string
+          required: true
+      secrets:
+        ARM_CLIENT_ID:
+          required: true
+        ARM_CLIENT_SECRET:
+          required: true
+        ARM_SUBSCRIPTION_ID:
+          required: true
+        ARM_TENANT_ID:
+          required: true
+env:
+ permissions:
+ contents: read
+jobs:
+  SPN:
+    outputs:
+      val: ${{steps.source.outputs.val}}
+    name: 'Retrieve SPN'
+    env:
+      ARM_CLIENT_ID: ${{secrets.ARM_CLIENT_ID}}
+      ARM_CLIENT_SECRET: ${{secrets.ARM_CLIENT_SECRET}}
+      ARM_TENANT_ID: ${{secrets.ARM_TENANT_ID}}
+      ARM_SUBSCRIPTION_ID: ${{secrets.ARM_SUBSCRIPTION_ID}}
+      ROOT_PATH: 'Azure/key-vault/manage'
+    runs-on: ubuntu-latest
+    environment: ${{inputs.environment}}
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - uses: actions/checkout@v3
+      - name: Az login
+        uses: azure/login@v2
+        with: 
+            creds: '{"clientId":"${{ secrets.ARM_CLIENT_ID }}","clientSecret":"${{ secrets.ARM_CLIENT_SECRET }}","subscriptionId":"${{ secrets.ARM_SUBSCRIPTION_ID }}","tenantId":"${{ secrets.ARM_TENANT_ID }}"}'
+            enable-AzPSSession: true
+
+      - name: Azure PowerShell Action
+        id: 'source'
+        uses: azure/powershell@v2
+        with:
+          azPSVersion: latest
+          inlineScript: |
+            $subscriptionName = (Set-AzContext -Subscription ${{ secrets.ARM_SUBSCRIPTION_ID }}).Subscription.Name
+            $region = $subscriptionName.split("-")[0]
+            $bu = $subscriptionName.split("-")[1]
+            $env = $subscriptionName.split("-")[2]
+            $nn = $subscriptionName.split("-")[3]
+
+            $DEV = "dev", "DEV"
+            $QA = "qa", "QA"
+            $UAT = "uat", "UAT"
+            $FOF = "fof", "FOF"
+            $PROD = "prod", "Prod", "PROD"
+            $iterate = ""
+
+            if ($env -eq 'PROD') { 
+              $iterate = $iterate + $PROD
+            }
+            elseif ($env -eq 'DEV') { 
+              $iterate = $iterate + $DEV
+            }
+            elseif ($env -eq 'QA') { 
+              $iterate = $iterate + $QA
+            }
+            elseif ($env -eq 'UAT') { 
+              $iterate = $iterate + $UAT
+            }
+            else { 
+              $iterate = $iterate + $FOF
+            }
+            echo "iterate=$iterate"
+            foreach ($ev in $iterate.split(" ")){
+              try{
+                  $name = $region + "-" + $bu  + "-" + $ev + "-" + $nn + "-SPN"
+                  Write-Output "Searching for SPN $name."
+                  $result = (Get-AzADServicePrincipal -DisplayName $name).DisplayName
+                  if($result -eq $null){
+                    Continue
+                  }
+                  else{
+                    $myenv = $result.split("-")[2]
+                    echo "::set-output name=val::$myenv"  
+                    echo $myenv
+                    break 
+                  }
+                  
+              }
+              catch {
+                Write-Output "Continue.."
+              }
+            }  
+
+      - name: Expose value 
+        id: exposeValue
+        run: |
+          echo ${{ steps.source.outputs.val }}
+          
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Terraform setup
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: latest
+
+      - name: Terraform Initialize
+        working-directory: ${{env.ROOT_PATH}}
+        run: terraform init
+      # - name: Terraform Initialize
+      #   uses: hashicorp/terraform-github-actions@master
+      #   with:
+      #     tf_actions_version: latest
+      #     tf_actions_subcommand: 'init'
+      #     tf_actions_working_dir: ${{env.ROOT_PATH}}
+      #     tf_actions_comment: true 
+        env:
+          TF_VAR_location: '${{inputs.location}}'
+          TF_VAR_environment: '${{inputs.environment}}'
+          TF_VAR_purpose: '${{inputs.purpose}}'
+          TF_VAR_purpose_rg: '${{inputs.purposeRG}}'
+          TF_VAR_spn_env: '${{ steps.source.outputs.val }}'
+          TF_VAR_subnet_name_private_endpoint: '${{inputs.subnetNamePrivateEndpoint}}'
+          TF_VAR_subnet_name_svc_endpoint: '${{inputs.subnetNameSvcEndpoint}}'
+          TF_VAR_sku_name: '${{inputs.sku}}'
+          TF_VAR_ip_rules: '[ "${{inputs.ipRules}}"  ]'
+      - name: Terraform plan
+        working-directory: ${{env.ROOT_PATH}}
+        run: terraform plan
+      # - name: Terraform Plan
+      #   uses: hashicorp/terraform-github-actions@master
+      #   with:
+      #     tf_actions_version: latest
+      #     tf_actions_subcommand: 'plan'
+      #     tf_actions_working_dir: ${{env.ROOT_PATH}}
+      #     tf_actions_comment: true
+        env:
+          TF_VAR_location: '${{inputs.location}}'
+          TF_VAR_environment: '${{inputs.environment}}'
+          TF_VAR_purpose: '${{inputs.purpose}}'
+          TF_VAR_purpose_rg: '${{inputs.purposeRG}}'
+          TF_VAR_spn_env: '${{ steps.source.outputs.val }}'
+          TF_VAR_subnet_name_private_endpoint: '${{inputs.subnetNamePrivateEndpoint}}'
+          TF_VAR_subnet_name_svc_endpoint: '${{inputs.subnetNameSvcEndpoint}}'
+          TF_VAR_sku_name: '${{inputs.sku}}'
+          TF_VAR_ip_rules: '[ "${{inputs.ipRules}}"  ]'
+      # Conditionally create or destroy Key Vault based on requestType input
+      - name: 'Terraform Apply - Create Key Vault'
+        if: ${{ inputs.requestType == 'create' }}
+        working-directory: ${{env.ROOT_PATH}}
+        run: terraform apply -auto-approve
+        env:
+          TF_VAR_location: '${{inputs.location}}'
+          TF_VAR_environment: '${{inputs.environment}}'
+          TF_VAR_purpose: '${{inputs.purpose}}'
+          TF_VAR_purpose_rg: '${{inputs.purposeRG}}'
+          TF_VAR_spn_env: '${{ steps.source.outputs.val }}'
+          TF_VAR_subnet_name_private_endpoint: '${{inputs.subnetNamePrivateEndpoint}}'
+          TF_VAR_subnet_name_svc_endpoint: '${{inputs.subnetNameSvcEndpoint}}'
+          TF_VAR_sku_name: '${{inputs.sku}}'
+          TF_VAR_ip_rules: '[ "${{inputs.ipRules}}"  ]' 
+
+      - name: 'Terraform Destroy - Remove Key Vault'
+        if: ${{ inputs.requestType == 'destroy' }}
+        working-directory: ${{env.ROOT_PATH}}
+        run: terraform destroy -auto-approve
+        env:
+          TF_VAR_location: '${{inputs.location}}'
+          TF_VAR_environment: '${{inputs.environment}}'
+          TF_VAR_purpose: '${{inputs.purpose}}'
+          TF_VAR_purpose_rg: '${{inputs.purposeRG}}'
+          TF_VAR_spn_env: '${{ steps.source.outputs.val }}'
+          TF_VAR_subnet_name_private_endpoint: '${{inputs.subnetNamePrivateEndpoint}}'
+          TF_VAR_subnet_name_svc_endpoint: '${{inputs.subnetNameSvcEndpoint}}'
+          TF_VAR_sku_name: '${{inputs.sku}}'
+          TF_VAR_ip_rules: '[ "${{inputs.ipRules}}"  ]' 
+
+      # Cleanup step in case of failure during creation
+      - name: Cleanup
+        if: ${{ failure() && inputs.requestType == 'create' }}
+        working-directory: ${{env.ROOT_PATH}}
+        run: terraform destroy -auto-approve
+        env:
+          TF_VAR_location: '${{inputs.location}}'
+          TF_VAR_environment: '${{inputs.environment}}'
+          TF_VAR_purpose: '${{inputs.purpose}}'
+          TF_VAR_purpose_rg: '${{inputs.purposeRG}}'
+          TF_VAR_spn_env: '${{ steps.source.outputs.val }}'
+          TF_VAR_subnet_name_private_endpoint: '${{inputs.subnetNamePrivateEndpoint}}'
+          TF_VAR_subnet_name_svc_endpoint: '${{inputs.subnetNameSvcEndpoint}}'
+          TF_VAR_sku_name: '${{inputs.sku}}'
+          TF_VAR_ip_rules: '[ "${{inputs.ipRules}}"  ]'
