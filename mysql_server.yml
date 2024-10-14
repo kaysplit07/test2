@@ -1,0 +1,119 @@
+name: 'Deploy MSSQL Server'
+run-name: '${{github.actor}} - Deploying to ${{inputs.subscription}} ${{inputs.environment}}'
+on:
+  workflow_dispatch:
+    inputs:
+      subscription:
+        type: string
+        required: true
+        description: Please enter your subscription Name
+      location:
+        type: choice
+        description: Pick the Location
+        options:
+          - eastus2
+          - centralus
+      environment:
+        type: choice
+        description: Choose the environment
+        options:
+          - dev
+          - qa 
+          - UAT
+          - Prod
+      purpose:
+        type: string
+        required: true
+        description: Enter Purpose for app (3-5 char)
+      subnetname:
+        type: string
+        required: true
+        description: Enter the subnet name for db endpoints
+      dbcollation:
+        type: string
+        required: false
+        description: Specify Collation of the database
+        default: SQL_Latin1_General_CP1_CI_AS
+      skuname:
+        type: choice
+        description: Select SKU_NAME used by Database
+        options:
+          - S0
+          - P2
+          - Basic
+          - ElasticPool
+          - BC_Gen5_2
+          - HS_Gen4_1
+          - GP_S_Gen5_2
+          - DW100c
+          - DS100
+      zoneredundancy:
+        type: choice
+        options:
+          - "false"
+          - "true"
+      action:
+        type: choice
+        description: Choose the action to perform (Create or Destroy)
+        required: true
+        options:
+          - create
+          - destroy
+
+jobs:
+  Deploy-Resource-Group:
+    if: ${{ inputs.action == 'create' }}
+    name: 'Deploying - Resource Group'
+    uses: ./.github/workflows/CreateResourceGroup.yml
+    secrets:
+      ARM_CLIENT_ID: ${{secrets.AZURE_CLIENT_ID}}
+      ARM_CLIENT_SECRET: ${{secrets.AZURE_CLIENT_SECRET}}
+      ARM_SUBSCRIPTION_ID: ${{secrets.AZURE_SUBSCRIPTION_ID}}
+      ARM_TENANT_ID: ${{secrets.AZURE_TENANT_ID}}
+    with:
+      name: 'resource-group'
+      subscription: '${{inputs.subscription}}'
+      location: '${{inputs.location}}'
+      environment: '${{inputs.environment}}'
+      purpose: '${{inputs.purpose}}'
+
+  Deploy-Mssql-Server:
+    if: ${{ inputs.action == 'create' }}
+    name: 'Deploying - MSSQL Server'
+    uses: ./.github/workflows/Createmssqlserver.yml
+    needs: Deploy-Resource-Group
+    secrets:
+      ARM_CLIENT_ID: ${{secrets.AZURE_CLIENT_ID}}
+      ARM_CLIENT_SECRET: ${{secrets.AZURE_CLIENT_SECRET}}
+      ARM_SUBSCRIPTION_ID: ${{secrets.AZURE_SUBSCRIPTION_ID}}
+      ARM_TENANT_ID: ${{secrets.AZURE_TENANT_ID}}
+    with:
+      name: 'mssql'
+      subscription: '${{inputs.subscription}}'
+      location: '${{inputs.location}}'
+      environment: '${{inputs.environment}}'
+      purpose: '${{inputs.purpose}}'
+      subnetname: '${{inputs.subnetname}}'
+      dbcollation: '${{inputs.dbcollation}}'
+      skuname: '${{inputs.skuname}}'
+      zoneredundancy: '${{inputs.zoneredundancy}}'
+
+  Destroy-Mssql-Server:
+    if: ${{ inputs.action == 'destroy' }}
+    name: 'Destroying - MSSQL Server'
+    uses: ./.github/workflows/Destroymssqlserver.yml
+    secrets:
+      ARM_CLIENT_ID: ${{secrets.AZURE_CLIENT_ID}}
+      ARM_CLIENT_SECRET: ${{secrets.AZURE_CLIENT_SECRET}}
+      ARM_SUBSCRIPTION_ID: ${{secrets.AZURE_SUBSCRIPTION_ID}}
+      ARM_TENANT_ID: ${{secrets.AZURE_TENANT_ID}}
+    with:
+      name: 'mssql'
+      subscription: '${{inputs.subscription}}'
+      location: '${{inputs.location}}'
+      environment: '${{inputs.environment}}'
+      purpose: '${{inputs.purpose}}'
+      subnetname: '${{inputs.subnetname}}'
+      dbcollation: '${{inputs.dbcollation}}'
+      skuname: '${{inputs.skuname}}'
+      zoneredundancy: '${{inputs.zoneredundancy}}'
