@@ -1,146 +1,117 @@
-name: 'Deploy or Destroy Key Vault'
-run-name: '${{inputs.environment}}: ${{inputs.action}} KeyVault ${{inputs.purpose}} in RG ${{inputs.purposeRG}} - ${{github.actor}}'
+name: 'Key Vault Create or Remove'
+run-name: ${{github.actor}}
 on:
-  workflow_dispatch:
+  workflow_call:
     inputs:
       requestType:
-        type: choice
-        required: true
-        description: Request Type
-        options:
-          - 'Select'
-          - Create (with New RG)
-          - Create (with Existing RG)
-      location:
-        type: choice
-        description: Location
-        required: true
-        options:
-          - 'Select'
-          - eastus2
-          - centralus
-          - uksouth
-          - ukwest
-      environment:
-        type: choice
-        description: Environment
-        required: true
-        options:
-          - 'Select'
-          - dev
-          - qa
-          - uat
-          - Prod
-      purposeRG:
         type: string
         required: true
-        description: Purpose for Resource Group Name [3-5 char]
+      location:
+        type: string
+        required: true
+      environment:
+        type: string
+        required: true
       purpose:
         type: string
         required: true
-        description: Purpose for KeyVault Name [3-5 char]
-      sku:
-        type: choice
+      purposeRG:
+        type: string
         required: true
-        description: KeyVault SKU
-        options:
-          - 'Select'
-          - 'standard'    
-          - 'premium'   
       subnetNamePrivateEndpoint:
         type: string
         required: true
-        default: ''
-        description: Subnet Name for Private Endpoint
       subnetNameSvcEndpoint:
         type: string
-        required: true
-        default: ''
-        description: Subnet Name for Service Endpoint (Enable Selected Networks)
+        required: false
       ipRules:
         type: string
-        required: false
-        default: ''
-        description: List of IPv4 Addresses to allow through Networking (comma separated ex- 111.222.333.44/32)
-      action:
-        type: choice
         required: true
-        description: Choose the action to perform (Create or Destroy)
-        options:
-          - create
-          - destroy
+      sku:
+        type: string
+        required: true
+    secrets:
+      ARM_CLIENT_ID:
+        required: true
+      ARM_CLIENT_SECRET:
+        required: true
+      ARM_SUBSCRIPTION_ID:
+        required: true
+      ARM_TENANT_ID:
+        required: true
+
+env:
+  permissions:
+    contents: read
 
 jobs:
-  New-RG:
-    if: (github.event.inputs.purpose != '' && github.event.inputs.purposeRG != '' && github.event.inputs.requestType== 'Create (with New RG)' && github.event.inputs.action == 'create')
-    name: 'New Resource Group'
-    uses: ./.github/workflows/CreateResourceGroup.yml
-    secrets:
-      ARM_CLIENT_ID: ${{secrets.AZURE_CLIENT_ID}}
-      ARM_CLIENT_SECRET: ${{secrets.AZURE_CLIENT_SECRET}}
-      ARM_SUBSCRIPTION_ID: ${{secrets.AZURE_SUBSCRIPTION_ID}}
-      ARM_TENANT_ID: ${{secrets.AZURE_TENANT_ID}}
-    with:
-      name: 'resource-group'
-      subscription: '${{inputs.subscription}}'
-      location: '${{inputs.location}}'
-      environment: '${{inputs.environment}}'
-      purpose: '${{inputs.purposeRG}}'
+  KeyVault:
+    name: 'Key Vault Create or Remove'
+    env:
+      ARM_CLIENT_ID: ${{secrets.ARM_CLIENT_ID}}
+      ARM_CLIENT_SECRET: ${{secrets.ARM_CLIENT_SECRET}}
+      ARM_TENANT_ID: ${{secrets.ARM_TENANT_ID}}
+      ARM_SUBSCRIPTION_ID: ${{secrets.ARM_SUBSCRIPTION_ID}}
+      ROOT_PATH: 'Azure/key-vault'
+    runs-on: ubuntu-latest
+    environment: ${{inputs.environment}}
 
-  Deploying-Key-Vault-New-RG:
-    if: (github.event.inputs.purpose != '' && github.event.inputs.purposeRG != '' && github.event.inputs.requestType== 'Create (with New RG)' && github.event.inputs.action == 'create')
-    name: 'Deploying Key Vault'
-    needs: 'New-RG'
-    uses: ./.github/workflows/KeyVault-Create.yml
-    secrets:
-      ARM_CLIENT_ID: ${{secrets.AZURE_CLIENT_ID}}
-      ARM_CLIENT_SECRET: ${{secrets.AZURE_CLIENT_SECRET}}
-      ARM_SUBSCRIPTION_ID: ${{secrets.AZURE_SUBSCRIPTION_ID}}
-      ARM_TENANT_ID: ${{secrets.AZURE_TENANT_ID}}
-    with:
-      location: '${{inputs.location}}'
-      environment: '${{inputs.environment}}'
-      purpose: '${{inputs.purpose}}'
-      purposeRG: '${{inputs.purposeRG}}'
-      subnetNamePrivateEndpoint: '${{inputs.subnetNamePrivateEndpoint}}'
-      subnetNameSvcEndpoint: '${{inputs.subnetNameSvcEndpoint}}'
-      ipRules: '${{inputs.ipRules}}'
-      sku: '${{inputs.sku}}'
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v3
 
-  Deploying-Key-Vault-Existing-RG:
-    if: (github.event.inputs.purpose != '' && github.event.inputs.purposeRG != '' && github.event.inputs.requestType== 'Create (with Existing RG)' && github.event.inputs.action == 'create')
-    name: 'Deploying Key Vault to Existing RG'
-    uses: ./.github/workflows/KeyVault-Create.yml
-    secrets:
-      ARM_CLIENT_ID: ${{secrets.AZURE_CLIENT_ID}}
-      ARM_CLIENT_SECRET: ${{secrets.AZURE_CLIENT_SECRET}}
-      ARM_SUBSCRIPTION_ID: ${{secrets.AZURE_SUBSCRIPTION_ID}}
-      ARM_TENANT_ID: ${{secrets.AZURE_TENANT_ID}}
-    with:
-      location: '${{inputs.location}}'
-      environment: '${{inputs.environment}}'
-      purpose: '${{inputs.purpose}}'
-      purposeRG: '${{inputs.purposeRG}}'
-      subnetNamePrivateEndpoint: '${{inputs.subnetNamePrivateEndpoint}}'
-      subnetNameSvcEndpoint: '${{inputs.subnetNameSvcEndpoint}}'
-      ipRules: '${{inputs.ipRules}}'
-      sku: '${{inputs.sku}}'
+      - name: Azure Login
+        uses: azure/login@v1
+        with:
+          creds: '{"clientId": "${{secrets.ARM_CLIENT_ID}}", "clientSecret": "${{secrets.ARM_CLIENT_SECRET}}", "subscriptionId": "${{secrets.ARM_SUBSCRIPTION_ID}}", "tenantId": "${{secrets.ARM_TENANT_ID}}"}'
 
-  Destroy-Key-Vault:
-    if: (github.event.inputs.action == 'destroy')
-    name: 'Destroy Key Vault'
-    uses: ./.github/workflows/DestroyKeyVault.yml
-    secrets:
-      ARM_CLIENT_ID: ${{secrets.AZURE_CLIENT_ID}}
-      ARM_CLIENT_SECRET: ${{secrets.AZURE_CLIENT_SECRET}}
-      ARM_SUBSCRIPTION_ID: ${{secrets.AZURE_SUBSCRIPTION_ID}}
-      ARM_TENANT_ID: ${{secrets.AZURE_TENANT_ID}}
-    with:
-      location: '${{inputs.location}}'
-      environment: '${{inputs.environment}}'
-      purpose: '${{inputs.purpose}}'
-      purposeRG: '${{inputs.purposeRG}}'
-      subnetNamePrivateEndpoint: '${{inputs.subnetNamePrivateEndpoint}}'
-      subnetNameSvcEndpoint: '${{inputs.subnetNameSvcEndpoint}}'
-      ipRules: '${{inputs.ipRules}}'
-      sku: '${{inputs.sku}}'
+      - name: Terraform Setup
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: latest
+
+      - name: Terraform Initialize
+        run: terraform init
+        working-directory: ${{env.ROOT_PATH}}
+
+      - name: Terraform Plan
+        if: ${{ inputs.requestType == 'Create (with New RG)' || inputs.requestType == 'Create (with Existing RG)' }}
+        run: terraform plan
+        working-directory: ${{env.ROOT_PATH}}
+        env:
+          TF_VAR_location: '${{inputs.location}}'
+          TF_VAR_environment: '${{inputs.environment}}'
+          TF_VAR_purpose: '${{inputs.purpose}}'
+          TF_VAR_purpose_rg: '${{inputs.purposeRG}}'
+          TF_VAR_subnet_name_private_endpoint: '${{inputs.subnetNamePrivateEndpoint}}'
+          TF_VAR_subnet_name_svc_endpoint: '${{inputs.subnetNameSvcEndpoint}}'
+          TF_VAR_sku_name: '${{inputs.sku}}'
+          TF_VAR_ip_rules: '[ "${{inputs.ipRules}}" ]'
+
+      - name: Terraform Apply
+        if: ${{ inputs.requestType == 'Create (with New RG)' || inputs.requestType == 'Create (with Existing RG)' }}
+        run: terraform apply -auto-approve
+        working-directory: ${{env.ROOT_PATH}}
+        env:
+          TF_VAR_location: '${{inputs.location}}'
+          TF_VAR_environment: '${{inputs.environment}}'
+          TF_VAR_purpose: '${{inputs.purpose}}'
+          TF_VAR_purpose_rg: '${{inputs.purposeRG}}'
+          TF_VAR_subnet_name_private_endpoint: '${{inputs.subnetNamePrivateEndpoint}}'
+          TF_VAR_subnet_name_svc_endpoint: '${{inputs.subnetNameSvcEndpoint}}'
+          TF_VAR_sku_name: '${{inputs.sku}}'
+          TF_VAR_ip_rules: '[ "${{inputs.ipRules}}" ]'
+
+      - name: Terraform Destroy
+        if: ${{ inputs.requestType == 'Remove' }}
+        run: terraform destroy -auto-approve
+        working-directory: ${{env.ROOT_PATH}}
+        env:
+          TF_VAR_location: '${{inputs.location}}'
+          TF_VAR_environment: '${{inputs.environment}}'
+          TF_VAR_purpose: '${{inputs.purpose}}'
+          TF_VAR_purpose_rg: '${{inputs.purposeRG}}'
+          TF_VAR_subnet_name_private_endpoint: '${{inputs.subnetNamePrivateEndpoint}}'
+          TF_VAR_subnet_name_svc_endpoint: '${{inputs.subnetNameSvcEndpoint}}'
+          TF_VAR_sku_name: '${{inputs.sku}}'
+          TF_VAR_ip_rules: '[ "${{inputs.ipRules}}" ]'

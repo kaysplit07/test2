@@ -1,15 +1,22 @@
 name: 'Deploy MSSQL Server'
-run-name: '${{github.actor}} - Deploying to ${{inputs.subscription}} ${{inputs.environment}}'
+run-name: '${{github.actor}} - Deploying to_${{inputs.subscription}}_${{inputs.environment}}'
 on:
   workflow_dispatch:
     inputs:
+      requestType:
+        type: choice
+        description: Choose the request type
+        options:
+          - Create
+          - Remove
+        required: true
       subscription:
         type: string
         required: true
-        description: Please enter your subscription Name
+        description: Please enter your subscription name
       location:
         type: choice
-        description: Pick the Location
+        description: Pick the location
         options:
           - eastus2
           - centralus
@@ -18,25 +25,25 @@ on:
         description: Choose the environment
         options:
           - dev
-          - qa 
+          - qa
           - UAT
           - Prod
       purpose:
         type: string
         required: true
-        description: Enter Purpose for app (3-5 char)
+        description: Enter purpose for app (3-5 char)
       subnetname:
         type: string
         required: true
-        description: Enter the subnet name for db endpoints
+        description: Enter the subnet name for DB endpoints
       dbcollation:
         type: string
         required: false
-        description: Specify Collation of the database
+        description: Specify the collation of the database
         default: SQL_Latin1_General_CP1_CI_AS
       skuname:
         type: choice
-        description: Select SKU_NAME used by Database
+        description: Select SKU name used by database
         options:
           - S0
           - P2
@@ -52,18 +59,11 @@ on:
         options:
           - "false"
           - "true"
-      action:
-        type: choice
-        description: Choose the action to perform (Create or Destroy)
-        required: true
-        options:
-          - create
-          - destroy
 
 jobs:
-  Deploy-Resource-Group:
-    if: ${{ inputs.action == 'create' }}
-    name: 'Deploying - Resource Group'
+  Deploying-Resource-Group:
+    if: ${{ inputs.requestType == 'Create' }}
+    name: 'Deploying - resource-group'
     uses: ./.github/workflows/CreateResourceGroup.yml
     secrets:
       ARM_CLIENT_ID: ${{secrets.AZURE_CLIENT_ID}}
@@ -77,12 +77,12 @@ jobs:
       environment: '${{inputs.environment}}'
       purpose: '${{inputs.purpose}}'
 
-  Deploy-Mssql-Server:
-    if: ${{ inputs.action == 'create' }}
-    name: 'Deploying - MSSQL Server'
+  Deploying-Mssql-server:
+    if: ${{ inputs.requestType == 'Create' }}
+    name: 'Deploying - MSSQL server'
     uses: ./.github/workflows/Createmssqlserver.yml
-    needs: Deploy-Resource-Group
-    secrets:
+    needs: Deploying-Resource-Group
+    secrets: 
       ARM_CLIENT_ID: ${{secrets.AZURE_CLIENT_ID}}
       ARM_CLIENT_SECRET: ${{secrets.AZURE_CLIENT_SECRET}}
       ARM_SUBSCRIPTION_ID: ${{secrets.AZURE_SUBSCRIPTION_ID}}
@@ -98,11 +98,11 @@ jobs:
       skuname: '${{inputs.skuname}}'
       zoneredundancy: '${{inputs.zoneredundancy}}'
 
-  Destroy-Mssql-Server:
-    if: ${{ inputs.action == 'destroy' }}
-    name: 'Destroying - MSSQL Server'
-    uses: ./.github/workflows/Destroymssqlserver.yml
-    secrets:
+  Removing-Mssql-server:
+    if: ${{ inputs.requestType == 'Remove' }}
+    name: 'Removing - MSSQL server'
+    uses: ./.github/workflows/RemoveMssqlserver.yml
+    secrets: 
       ARM_CLIENT_ID: ${{secrets.AZURE_CLIENT_ID}}
       ARM_CLIENT_SECRET: ${{secrets.AZURE_CLIENT_SECRET}}
       ARM_SUBSCRIPTION_ID: ${{secrets.AZURE_SUBSCRIPTION_ID}}
@@ -113,7 +113,3 @@ jobs:
       location: '${{inputs.location}}'
       environment: '${{inputs.environment}}'
       purpose: '${{inputs.purpose}}'
-      subnetname: '${{inputs.subnetname}}'
-      dbcollation: '${{inputs.dbcollation}}'
-      skuname: '${{inputs.skuname}}'
-      zoneredundancy: '${{inputs.zoneredundancy}}'
