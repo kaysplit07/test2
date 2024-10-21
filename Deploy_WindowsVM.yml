@@ -12,7 +12,7 @@ on:
               - Create (with Existing RG)
               - Update (Data Disk)
               - Update (OS Disk)
-              - Remove (Not Available - upcoming functionality)
+              - Remove (Destroy VM)
           default:
               "Create (with New RG)"
         environment:
