@@ -89,6 +89,7 @@ jobs:
       ARM_TENANT_ID: ${{secrets.AZURE_TENANT_ID}}
     with:
       name: 'mssql'
+      requestType: '${{inputs.requestType}}'
       subscription: '${{inputs.subscription}}'
       location: '${{inputs.location}}'
       environment: '${{inputs.environment}}'
@@ -109,6 +110,7 @@ jobs:
       ARM_TENANT_ID: ${{secrets.AZURE_TENANT_ID}}
     with:
       name: 'mssql'
+      requestType: '${{inputs.requestType}}'
       subscription: '${{inputs.subscription}}'
       location: '${{inputs.location}}'
       environment: '${{inputs.environment}}'
