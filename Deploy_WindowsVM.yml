@@ -159,7 +159,12 @@ jobs:
           ARM_TENANT_ID:        ${{secrets.AZURE_TENANT_ID}}
         with:
           requestType:                '${{inputs.requestType}}'
-          environment:                '${{inputs.environment}}' 
+          environment:                '${{inputs.environment}}'
           location:                   '${{inputs.location}}'
+          vmsize:                     '${{inputs.vmsize}}'
           purpose:                    '${{inputs.purpose}}'
           purposeRG:                  '${{inputs.purposeRG}}'
+          projectou:                  '${{inputs.projectou}}'
+          subnetNameWVM:              '${{inputs.subnetNameWVM}}'
+          diskSizeGB:                 '${{inputs.diskSizeGB}}'
+          diskStorageAccountType:     '${{inputs.diskStorageAccountType}}'
