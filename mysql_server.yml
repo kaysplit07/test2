@@ -115,3 +115,6 @@ jobs:
       location: '${{inputs.location}}'
       environment: '${{inputs.environment}}'
       purpose: '${{inputs.purpose}}'
+      subnetname: '${{inputs.subnetname}}'
+      skuname: '${{inputs.skuname}}'
+      zoneredundancy: '${{inputs.zoneredundancy}}'
