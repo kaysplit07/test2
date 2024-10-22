@@ -82,6 +82,7 @@ jobs:
 
       # Plan the creation or removal of the resources
       - name: 'Terraform Plan - Windows VM (${{ inputs.purpose }})'
+        if: ${{ inputs.requestType == 'Create (with New RG)' || inputs.requestType == 'Create (with Existing RG)' }}
         uses: hashicorp/terraform-github-actions@master
         with:
           tf_actions_version:     latest
@@ -101,7 +102,7 @@ jobs:
           TF_VAR_disk_storage_account_type: '${{inputs.diskStorageAccountType}}'
 
       # Conditional Apply or Destroy based on requestType
-      - name: 'Apply or Destroy - Windows VM (${{ inputs.purpose }})'
+      - name: 'Apply - Windows VM (${{ inputs.purpose }})'
         if: ${{ inputs.requestType == 'Create (with New RG)' || inputs.requestType == 'Create (with Existing RG)' }}
         uses: hashicorp/terraform-github-actions@master
         with:
@@ -122,7 +123,7 @@ jobs:
           TF_VAR_disk_storage_account_type: '${{inputs.diskStorageAccountType}}'
 
       - name: 'Terraform Destroy - Windows VM (${{ inputs.purpose }})'
-        if: ${{ inputs.requestType == 'Remove' }}
+        if: ${{ inputs.requestType == 'Remove (Destroy VM)' }}
         uses: hashicorp/terraform-github-actions@master
         with:
           tf_actions_version:     latest
