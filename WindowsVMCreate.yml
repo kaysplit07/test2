@@ -26,6 +26,9 @@ on:
       subnetNameWVM:
         type: string
         required: false
+      subnetNameWVM2:
+        type: string
+        required: false
       diskSizeGB:
         type: string
         required: false
@@ -73,6 +76,7 @@ jobs:
           TF_VAR_purpose_rg:                '${{inputs.purposeRG}}'
           TF_VAR_project_ou:                '${{inputs.projectou}}'
           TF_VAR_subnetname_wvm:            '${{inputs.subnetNameWVM}}'
+          TF_VAR_subnetname_wvm2:           '${{inputs.subnetNameWVM2}}'
           TF_VAR_disk_size_gb:              '${{inputs.diskSizeGB}}'
           TF_VAR_disk_storage_account_type: '${{inputs.diskStorageAccountType}}'
 
@@ -92,6 +96,7 @@ jobs:
           TF_VAR_purpose_rg:                '${{inputs.purposeRG}}'
           TF_VAR_project_ou:                '${{inputs.projectou}}'
           TF_VAR_subnetname_wvm:            '${{inputs.subnetNameWVM}}'
+          TF_VAR_subnetname_wvm2:           '${{inputs.subnetNameWVM2}}'
           TF_VAR_disk_size_gb:              '${{inputs.diskSizeGB}}'
           TF_VAR_disk_storage_account_type: '${{inputs.diskStorageAccountType}}'
 
@@ -112,6 +117,7 @@ jobs:
           TF_VAR_purpose_rg:                '${{inputs.purposeRG}}'
           TF_VAR_project_ou:                '${{inputs.projectou}}'
           TF_VAR_subnetname_wvm:            '${{inputs.subnetNameWVM}}'
+          TF_VAR_subnetname_wvm2:           '${{inputs.subnetNameWVM2}}'
           TF_VAR_disk_size_gb:              '${{inputs.diskSizeGB}}'
           TF_VAR_disk_storage_account_type: '${{inputs.diskStorageAccountType}}'
 
@@ -132,5 +138,6 @@ jobs:
           TF_VAR_purpose_rg:                '${{inputs.purposeRG}}'
           TF_VAR_project_ou:                '${{inputs.projectou}}'
           TF_VAR_subnetname_wvm:            '${{inputs.subnetNameWVM}}'
+          TF_VAR_subnetname_wvm2:           '${{inputs.subnetNameWVM2}}'
           TF_VAR_disk_size_gb:              '${{inputs.diskSizeGB}}'
           TF_VAR_disk_storage_account_type: '${{inputs.diskStorageAccountType}}'
