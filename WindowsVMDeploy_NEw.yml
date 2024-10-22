@@ -12,7 +12,7 @@ on:
               - Create (with Existing RG)
               - Update (Data Disk)
               - Update (OS Disk)
-              - Remove (Not Available - upcoming functionality)
+              - Remove (Destroy VM)
           default:
              "Create (with New RG)"
         environment:
@@ -168,14 +168,15 @@ jobs:
           diskSizeGB:                 '${{ inputs.diskSizeGB }}'
           diskStorageAccountType:     '${{ inputs.diskStorageAccountType }}'
       windows_vm_remove:
-        if: (github.event.inputs.requestType == 'Remove')
-        name: 'Remove Windows VM ${{inputs.purpose}}'
+        if: (github.event.inputs.requestType == 'Remove (Destroy VM)')
+        name: 'Windows VM ${{ inputs.purpose }}'
         uses: ./.github/workflows/WindowsVMCreate.yml
+        needs: parse_subnet_info
         secrets:
-          ARM_CLIENT_ID:        ${{secrets.AZURE_CLIENT_ID}}
-          ARM_CLIENT_SECRET:    ${{secrets.AZURE_CLIENT_SECRET}}
-          ARM_SUBSCRIPTION_ID:  ${{secrets.AZURE_SUBSCRIPTION_ID}}
-          ARM_TENANT_ID:        ${{secrets.AZURE_TENANT_ID}}
+          ARM_CLIENT_ID:        ${{ secrets.AZURE_CLIENT_ID }}
+          ARM_CLIENT_SECRET:    ${{ secrets.AZURE_CLIENT_SECRET }}
+          ARM_SUBSCRIPTION_ID:  ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+          ARM_TENANT_ID:        ${{ secrets.AZURE_TENANT_ID }}
         with:
           requestType:                '${{ inputs.requestType }}'
           environment:                '${{ inputs.environment }}'
