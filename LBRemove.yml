@@ -1,0 +1,59 @@
+name: 'Remove Load Balancer'
+
+on:
+  workflow_call:
+    inputs:
+      requesttype:
+        type: string
+        required: true
+      environment:
+        type: string
+        required: true
+      location:
+        type: string
+        required: true
+      purpose_rg:
+        type: string
+        required: true
+      sku_name:
+        type: string
+        required: true
+    secrets:
+      ARM_CLIENT_ID:
+        required: true
+      ARM_CLIENT_SECRET:
+        required: true
+      ARM_SUBSCRIPTION_ID:
+        required: true
+      ARM_TENANT_ID:
+        required: true
+
+jobs:
+  destroy:
+    name: 'Destroy Load Balancer'
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: 'Checkout Repository'
+      uses: actions/checkout@v2
+
+    - name: 'Setup Terraform'
+      uses: hashicorp/setup-terraform@v2
+
+    - name: 'Terraform Init'
+      working-directory: ./terraform/lb
+      run: terraform init
+
+    - name: 'Terraform Destroy'
+      working-directory: ./terraform/lb
+      env:
+        ARM_CLIENT_ID: ${{ secrets.ARM_CLIENT_ID }}
+        ARM_CLIENT_SECRET: ${{ secrets.ARM_CLIENT_SECRET }}
+        ARM_SUBSCRIPTION_ID: ${{ secrets.ARM_SUBSCRIPTION_ID }}
+        ARM_TENANT_ID: ${{ secrets.ARM_TENANT_ID }}
+      run: |
+        terraform destroy -auto-approve \
+          -var="environment=${{ inputs.environment }}" \
+          -var="location=${{ inputs.location }}" \
+          -var="purpose_rg=${{ inputs.purpose_rg }}" \
+          -var="sku_name=${{ inputs.sku_name }}"
