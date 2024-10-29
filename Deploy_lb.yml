@@ -37,18 +37,24 @@ on:
         type: string
         required: true
         description: Resource Group Purpose. Hyphen designates an existing RG
-      sku:
+      skuname:
         type: choice
-        required: false
-        description: SKU Type for the Load Balancer
+        description: Select SKU name used by database
         options:
-            - Basic
-            - Standard
+          - S0
+          - P2
+          - Basic
+          - ElasticPool
+          - BC_Gen5_2
+          - HS_Gen4_1
+          - GP_S_Gen5_2
+          - DW100c
+          - DS100
         default: "Standard"
-      private_ip:
-        type: string
-        required: false
-        description: Private IP address for the Load Balancer frontend configuration (if applicable)
+      # private_ip:
+      #   type: string
+      #   required: false
+      #   description: Private IP address for the Load Balancer frontend configuration (if applicable)
       subnetName:
         type: string
         required: true
@@ -86,8 +92,8 @@ jobs:
       environment: '${{ inputs.environment }}'
       location: '${{ inputs.location }}'
       purposeRG: '${{ inputs.purposeRG }}'
-      sku: '${{ inputs.sku }}'
-      private_ip: '${{ inputs.private_ip }}'
+      skuname: '${{ inputs.skuname }}'
+      # private_ip: '${{ inputs.private_ip }}'
       subnetName: '${{ inputs.subnetName }}'
 
   load_balancer_existing_rg:
@@ -104,8 +110,8 @@ jobs:
       environment: '${{ inputs.environment }}'
       location: '${{ inputs.location }}'
       purposeRG: '${{ inputs.purposeRG }}'
-      sku: '${{ inputs.sku }}'
-      private_ip: '${{ inputs.private_ip }}'
+      skuname: '${{ inputs.skuname }}'
+      # private_ip: '${{ inputs.private_ip }}'
       subnetName: '${{ inputs.subnetName }}'
 
   load_balancer_remove:
@@ -122,6 +128,6 @@ jobs:
       environment: '${{ inputs.environment }}'
       location: '${{ inputs.location }}'
       purposeRG: '${{ inputs.purposeRG }}'
-      sku: '${{ inputs.sku }}'
-      private_ip: '${{ inputs.private_ip }}'
+      skuname: '${{ inputs.skuname }}'
+      # private_ip: '${{ inputs.private_ip }}'
       subnetName: '${{ inputs.subnetName }}'
