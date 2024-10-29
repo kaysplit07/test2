@@ -12,7 +12,7 @@ on:
       location:
         type: string
         required: true
-      purpose_rg:
+      purposeRG:
         type: string
         required: true
       sku_name:
@@ -46,11 +46,11 @@ jobs:
       run:
         shell: bash
     steps:
-      - name: 'Checkout - Load Balancer (${{ inputs.purpose_rg }})'
+      - name: 'Checkout - Load Balancer (${{ inputs.purposeRG }})'
         uses: actions/checkout@v3
 
       # Terraform Initialize
-      - name: 'Terraform Initialize - Load Balancer (${{ inputs.purpose_rg }})'
+      - name: 'Terraform Initialize - Load Balancer (${{ inputs.purposeRG }})'
         uses: hashicorp/terraform-github-actions@master
         with:
           tf_actions_version:     latest
@@ -61,7 +61,7 @@ jobs:
           TF_VAR_request_type:    '${{ inputs.requestType }}'
           TF_VAR_environment:     '${{ inputs.environment }}'
           TF_VAR_location:        '${{ inputs.location }}'
-          TF_VAR_purpose_rg:      '${{ inputs.purpose_rg }}'
+          TF_VAR_purposeRG:      '${{ inputs.purposeRG }}'
           TF_VAR_sku_name:        '${{ inputs.sku_name }}'
       - name: 'Terraform Plan - Create Load Balancer'
         if: ${{ inputs.requestType == 'create' }}
@@ -75,7 +75,7 @@ jobs:
           TF_VAR_request_type:    '${{ inputs.requestType }}'
           TF_VAR_environment:     '${{ inputs.environment }}'
           TF_VAR_location:        '${{ inputs.location }}'
-          TF_VAR_purpose_rg:      '${{ inputs.purpose_rg }}'
+          TF_VAR_purposeRG:      '${{ inputs.purposeRG }}'
           TF_VAR_sku_name:        '${{ inputs.sku_name }}'
 
       # Terraform Apply to create the Load Balancer
@@ -91,7 +91,7 @@ jobs:
           TF_VAR_request_type:    '${{ inputs.requestType }}'
           TF_VAR_environment:     '${{ inputs.environment }}'
           TF_VAR_location:        '${{ inputs.location }}'
-          TF_VAR_purpose_rg:      '${{ inputs.purpose_rg }}'
+          TF_VAR_purposeRG:      '${{ inputs.purposeRG }}'
           TF_VAR_sku_name:        '${{ inputs.sku_name }}'
       - name: 'Terraform Destroy - Remove Load Balancer'
         if: ${{ inputs.requestType == 'destroy' }}
@@ -105,4 +105,4 @@ jobs:
           TF_VAR_request_type:    '${{ inputs.requestType }}'
           TF_VAR_environment:     '${{ inputs.environment }}'
           TF_VAR_location:        '${{ inputs.location }}'
-          TF_VAR_purpose_rg:      '${{ inputs.purpose_rg }}'
+          TF_VAR_purposeRG:      '${{ inputs.purposeRG }}'
