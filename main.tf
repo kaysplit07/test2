@@ -25,12 +25,12 @@ locals {
     locations_abbreviation = var.location_map[local.naming.locations]
   }
 
-  purpose_rg = var.purpose_rg
+  purposeRG = var.purposeRG
 }
 
 data "azurerm_resource_group" "rg" {
   for_each = { for inst in local.get_data : inst.unique_id => inst }
-  name     = join("-", [local.naming.bu, local.naming.environment, local.env_location.locations_abbreviation, local.purpose_rg, "rg"])
+  name     = join("-", [local.naming.bu, local.naming.environment, local.env_location.locations_abbreviation, local.purposeRG, "rg"])
 }
 
 # Virtual Network and Subnet Data Sources
@@ -55,27 +55,27 @@ resource "random_id" "randomnumber" {
 # Azure Load Balancer Resource
 resource "azurerm_lb" "internal_lb" {
   for_each = { for inst in local.get_data : inst.unique_id => inst }
-  name                = join("-", ["ari", local.naming.environment, local.env_location.locations_abbreviation, local.purpose_rg, "lbi", random_id.randomnumber.hex])
+  name                = join("-", ["ari", local.naming.environment, local.env_location.locations_abbreviation, local.purposeRG, "lbi", random_id.randomnumber.hex])
   location            = var.location
   resource_group_name = data.azurerm_resource_group.rg[each.key].name
   sku                 = (lookup(each.value,"sku_name",null) != null && lookup(each.value,"sku_name","") != "") ? each.value.sku_name : var.sku_name
 
   frontend_ip_configuration {
-    name                          = "internal-${local.purpose_rg}-server-feip"
+    name                          = "internal-${local.purposeRG}-server-feip"
     subnet_id                     = data.azurerm_subnet.subnet[each.key].id
     private_ip_address            = "10.82.58.233"
     private_ip_address_allocation = "Static"
   }
 
   backend_address_pool {
-    name = "internal-${local.purpose_rg}-server-bepool"
+    name = "internal-${local.purposeRG}-server-bepool"
   }
 }
 
 # Load Balancer Probe
 resource "azurerm_lb_probe" "tcp_probe" {
   for_each = azurerm_lb.internal_lb
-  name                = "internal-${local.purpose_rg}-server-tcp-probe"
+  name                = "internal-${local.purposeRG}-server-tcp-probe"
   resource_group_name = azurerm_lb.internal_lb[each.key].resource_group_name
   loadbalancer_id     = azurerm_lb.internal_lb[each.key].id
   protocol            = "Tcp"
@@ -87,7 +87,7 @@ resource "azurerm_lb_probe" "tcp_probe" {
 # Load Balancer TCP Rule
 resource "azurerm_lb_rule" "tcp_rule" {
   for_each = azurerm_lb.internal_lb
-  name                           = "internal-${local.purpose_rg}-server-tcp-lbrule"
+  name                           = "internal-${local.purposeRG}-server-tcp-lbrule"
   resource_group_name            = azurerm_lb.internal_lb[each.key].resource_group_name
   loadbalancer_id                = azurerm_lb.internal_lb[each.key].id
   protocol                       = "Tcp"
@@ -105,7 +105,7 @@ resource "azurerm_lb_rule" "tcp_rule" {
 # Load Balancer HTTPS Rule
 resource "azurerm_lb_rule" "https_rule" {
   for_each = azurerm_lb.internal_lb
-  name                           = "internal-${local.purpose_rg}-server-https-lbrule"
+  name                           = "internal-${local.purposeRG}-server-https-lbrule"
   resource_group_name            = azurerm_lb.internal_lb[each.key].resource_group_name
   loadbalancer_id                = azurerm_lb.internal_lb[each.key].id
   protocol                       = "Tcp"
