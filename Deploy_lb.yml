@@ -111,7 +111,7 @@ jobs:
   load_balancer_remove:
     if: (github.event.inputs.requesttype == 'Remove (Destroy LB)')
     name: 'Remove Load Balancer ${{ inputs.purpose }}'
-    uses: ./.github/workflows/LBRemove.yml
+    uses: ./.github/workflows/LBCreate.yml
     secrets:
       ARM_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
       ARM_CLIENT_SECRET: ${{ secrets.AZURE_CLIENT_SECRET }}
