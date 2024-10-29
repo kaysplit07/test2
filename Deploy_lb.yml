@@ -9,11 +9,11 @@ on:
         required: true
         description: Request Type
         options:
-        - Create (with New RG)
-        - Create (with Existing RG)
-        - Remove (Destroy LB)
-        default: "Create (with New RG)"
-
+            - Create (with New RG)
+            - Create (with Existing RG)
+            - Remove (Destroy LB)
+        default: 
+            "Create (with New RG)"
       environment:
         type: choice
         required: true
@@ -23,38 +23,32 @@ on:
         - UAT
         - QA
         - PROD
-
       location:
         type: choice
         required: true
         description: Deployment Location
         options:
-        - Select the location
-        - eastus2
-        - uksouth
-        - centralus
-        - ukwest
-
+            - Select the location
+            - eastus2
+            - uksouth
+            - centralus
+            - ukwest
       purposeRG:
         type: string
         required: true
         description: Resource Group Purpose. Hyphen designates an existing RG
-
       sku:
         type: choice
         required: false
         description: SKU Type for the Load Balancer
         options:
-        - Basic
-        - Standard
-        - ""
+            - Basic
+            - Standard
         default: "Standard"
-
       private_ip:
         type: string
         required: false
         description: Private IP address for the Load Balancer frontend configuration (if applicable)
-
       subnetName:
         type: string
         required: true
