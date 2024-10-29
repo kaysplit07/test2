@@ -4,10 +4,8 @@ on:
   workflow_call:
     inputs:
       requestType:
-        type: choice
-        required: true
-        options:
-          - create
+        type: string
+        required: false
       environment:
         type: string
         required: true
@@ -31,7 +29,7 @@ on:
         required: true
 env:
   permissions:
-    contents: read
+  contents: read
 jobs:
   manage-lb:
     name: 'Manage Load Balancer'
