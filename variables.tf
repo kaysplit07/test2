@@ -42,7 +42,7 @@ variable "location" {
 }
 
 
-variable "purpose_rg" {
+variable "purposeRG" {
   type        = string
   default     = "default"
   description = "(Required) The purpose segment of the Resource Group name. Should not exceed 5 characters."
