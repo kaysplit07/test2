@@ -106,3 +106,4 @@ jobs:
           TF_VAR_environment:     '${{ inputs.environment }}'
           TF_VAR_location:        '${{ inputs.location }}'
           TF_VAR_purposeRG:      '${{ inputs.purposeRG }}'
+          TF_VAR_sku_name:        '${{ inputs.sku_name }}'
