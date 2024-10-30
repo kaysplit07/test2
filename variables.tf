@@ -51,3 +51,20 @@ variable "purposeRG" {
     error_message = "(Required) Purpose segment cannot exceed 5 characters. Name cannot exceed 80."
   }  
  }
+
+
+
+# Define the name for the subnet
+variable "subnetname" {
+  description = "The name of the subnet to be used in the virtual network."
+  type        = string
+}
+
+
+
+# Optional variable for the CSV file path, if different from default
+variable "parameters_file_path" {
+  description = "The path to the parameters CSV file."
+  type        = string
+  default     = "../parameters.csv"
+}
