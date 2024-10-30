@@ -47,7 +47,7 @@ variable "purposeRG" {
   default     = "default"
   description = "(Required) The purpose segment of the Resource Group name. Should not exceed 5 characters."
   validation {
-    condition     = strcontains(var.purpose_rg, "-") ? length(var.purpose_rg) <= 80 : length(var.purpose_rg) <= 5
+    condition     = strcontains(var.purposeRG, "-") ? length(var.purposeRG) <= 80 : length(var.purposeRG) <= 5
     error_message = "(Required) Purpose segment cannot exceed 5 characters. Name cannot exceed 80."
   }  
  }
