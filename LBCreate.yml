@@ -64,7 +64,7 @@ jobs:
           TF_VAR_purposeRG:      '${{ inputs.purposeRG }}'
           TF_VAR_sku_name:        '${{ inputs.sku_name }}'
       - name: 'Terraform Plan - Create Load Balancer'
-        if: ${{ inputs.requestType == 'create' }}
+        if: ${{ inputs.requestType == 'Create (with New RG)' || inputs.requestType == 'Create (with Existing RG)' }}
         uses: hashicorp/terraform-github-actions@master
         with:
           tf_actions_version:     latest
@@ -80,7 +80,7 @@ jobs:
 
       # Terraform Apply to create the Load Balancer
       - name: 'Terraform Apply - Create Load Balancer'
-        if: ${{ inputs.requestType == 'create' }}
+        if: ${{ inputs.requestType == 'Create (with New RG)' || inputs.requestType == 'Create (with Existing RG)' }}
         uses: hashicorp/terraform-github-actions@master
         with:
           tf_actions_version:     latest
