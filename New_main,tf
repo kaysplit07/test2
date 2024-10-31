@@ -76,12 +76,14 @@ resource "azurerm_lb" "internal_lb" {
   for_each            = { for inst in local.get_data : inst.unique_id => inst }
   name                = join("-", ["ari", local.naming.environment, local.env_location.locations_abbreviation, local.purpose_rg, "lbi", random_id.randomnumber.hex])
   location            = var.location
-  resource_group_name = data.azurerm_resource_group.rg[each.key].name
+  #resource_group_name = data.azurerm_resource_group.rg[each.key].name
+  resource_group_name =  data.azurerm_resource_group.rg["0"].name
   sku                 = (lookup(each.value,"sku_name",null) != null && lookup(each.value,"sku_name","") != "") ? each.value.sku_name : var.sku_name
 
   frontend_ip_configuration {
     name                          = "internal-${local.purpose_rg}-server-feip"
-    subnet_id                     = data.azurerm_subnet.subnet[each.key].id
+    #subnet_id                     = data.azurerm_subnet.subnet[each.key].id
+    subnet_id                     = data.azurerm_subnet.subnet["0"].id
     private_ip_address            = var.private_ip_address  # Updated to use the variable
     private_ip_address_allocation = "Static"
   }
@@ -105,7 +107,6 @@ resource "azurerm_lb_probe" "tcp_probe" {
   interval_in_seconds = 10
   number_of_probes    = 5
 }
-
 
 # Load Balancer TCP Rule
 resource "azurerm_lb_rule" "tcp_rule" {
