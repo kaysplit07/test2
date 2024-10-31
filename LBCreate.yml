@@ -111,7 +111,7 @@ jobs:
           TF_VAR_sku_name:            '${{inputs.sku_name}}'
           TF_VAR_private_ip_address:  '${{inputs.private_ip_address}}'
       - name: 'Terraform Remove - Load Balancer'
-        if: ${{ inputs.requestType == 'Destroy' }}
+        if: ${{ inputs.requestType == 'Remove' }}
         uses: hashicorp/terraform-github-actions@master
         with:
           tf_actions_version:     latest
