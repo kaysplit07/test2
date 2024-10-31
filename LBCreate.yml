@@ -18,9 +18,9 @@ on:
       RGname:
         type: string
         required: false
-      subnetName:
-        type: string
-        required: false
+      subnetname:
+          type: string
+          required: true
       sku_name:
         type: string
         required: false
@@ -71,7 +71,7 @@ jobs:
           TF_VAR_purpose:             '${{inputs.purpose}}'
           TF_VAR_purpose_rg:          '${{inputs.purposeRG}}'
           TF_VAR_RGname:              '${{inputs.RGname}}'
-          TF_VAR_subnetName:          '${{inputs.subnetName}}'
+          TF_VAR_subnetname:          '${{inputs.subnetname}}'
           TF_VAR_sku_name:            '${{inputs.sku_name}}'
           TF_VAR_private_ip_address:  '${{inputs.private_ip_address}}'
 
@@ -89,7 +89,7 @@ jobs:
           TF_VAR_purpose:             '${{inputs.purpose}}'
           TF_VAR_purpose_rg:          '${{inputs.purposeRG}}'
           TF_VAR_RGname:              '${{inputs.RGname}}'
-          TF_VAR_subnetName:          '${{inputs.subnetName}}'
+          TF_VAR_subnetname:          '${{inputs.subnetname}}'
           TF_VAR_sku_name:            '${{inputs.sku_name}}'
           TF_VAR_private_ip_address:  '${{inputs.private_ip_address}}'
 
@@ -107,7 +107,7 @@ jobs:
           TF_VAR_purpose:             '${{inputs.purpose}}'
           TF_VAR_purpose_rg:          '${{inputs.purposeRG}}'
           TF_VAR_RGname:              '${{inputs.RGname}}'
-          TF_VAR_subnetName:          '${{inputs.subnetName}}'
+          TF_VAR_subnetname:          '${{inputs.subnetname}}'
           TF_VAR_sku_name:            '${{inputs.sku_name}}'
           TF_VAR_private_ip_address:  '${{inputs.private_ip_address}}'
       - name: 'Terraform Remove - Load Balancer'
@@ -124,6 +124,6 @@ jobs:
           TF_VAR_purpose:             '${{inputs.purpose}}'
           TF_VAR_purpose_rg:          '${{inputs.purposeRG}}'
           TF_VAR_RGname:              '${{inputs.RGname}}'
-          TF_VAR_subnetName:          '${{inputs.subnetName}}'
+          TF_VAR_subnetname:          '${{inputs.subnetname}}'
           TF_VAR_sku_name:            '${{inputs.sku_name}}'
           TF_VAR_private_ip_address:  '${{inputs.private_ip_address}}'
