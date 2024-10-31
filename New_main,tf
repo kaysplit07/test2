@@ -81,8 +81,7 @@ resource "azurerm_lb" "internal_lb" {
 
   frontend_ip_configuration {
     name                          = "internal-${local.purpose_rg}-server-feip"
-    #subnet_id                     = data.azurerm_subnet.subnet[each.key].id
-    subnet_id                      = data.azurerm_subnet.subnet.id
+    subnet_id                     = data.azurerm_subnet.subnet[each.key].id
     private_ip_address            = var.private_ip_address  # Updated to use the variable
     private_ip_address_allocation = "Static"
   }
