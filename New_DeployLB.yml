@@ -50,7 +50,7 @@ on:
         type: string
         required: true
         description: Resource Group Purpose.......... Hyphen designate an existing RG
-      subnetName:
+      subnetname:
         type: string
         required: true
         description: Subnet name for Load Balancer.
@@ -93,7 +93,7 @@ jobs:
       purpose:                   '${{inputs.purpose}}'
       RGname:                    '${{inputs.RGname}}'
       purposeRG:                 '${{inputs.purposeRG}}'
-      subnetName:                '${{inputs.subnetName}}'
+      subnetname:                '${{inputs.subnetname}}'
       private_ip_address:        '${{inputs.private_ip_address}}'
   
   load_balancer_existing_rg:
@@ -112,7 +112,7 @@ jobs:
       sku_name:                  '${{inputs.sku_name}}'
       purpose:                   '${{inputs.purpose}}'
       purposeRG:                 '${{inputs.purposeRG}}'
-      subnetName:                '${{inputs.subnetName}}'
+      subnetname:                '${{inputs.subnetname}}'
       RGname:                    '${{inputs.RGname}}'
       private_ip_address:        '${{inputs.private_ip_address}}'
   
@@ -133,5 +133,5 @@ jobs:
       purpose:                   '${{inputs.purpose}}'
       purposeRG:                 '${{inputs.purposeRG}}'
       RGname:                    '${{inputs.RGname}}'
-      subnetName:                '${{inputs.subnetName}}'
+      subnetname:                '${{inputs.subnetname}}'
       private_ip_address:        '${{inputs.private_ip_address}}'
