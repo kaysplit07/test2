@@ -35,22 +35,17 @@ output "resource_group_name" {
   value = data.azurerm_resource_group.rg
 }
 
-
-#   sensitive = true
-# }
-
-
 data "azurerm_virtual_network" "vnet" {
   for_each = { for index, inst in local.get_data : index => inst }
    name = (lookup(each.value, "vnet_name", null) != null && lookup(each.value, "vnet_name", "") != "") ? each.value.vnet_name : join("-", [local.naming.bu, local.naming.environment, local.env_location.locations_abbreviation, "vnet", local.naming.nn])
    resource_group_name  = (lookup(each.value, "vnet_resource_group", null) != null && lookup(each.value, "vnet_resource_group", "") != "") ? each.value.vnet_resource_group : join("-", [local.naming.bu, local.naming.environment, local.env_location.locations_abbreviation, "spokenetwork-rg"])
   
 }
+
 output "virtual_network_id" {
   value = data.azurerm_virtual_network.vnet
   sensitive = true
 }
-
 
 data "azurerm_subnet" "subnet" {
   for_each = { for index, inst in local.get_data : index => inst }
@@ -64,27 +59,23 @@ output "subnet_id" {
   sensitive = true
 }
 
-
 # Random ID for Naming Uniqueness
 resource "random_id" "randomnumber" {
   byte_length = 1
 }
 
-
 # Azure Load Balancer Resource
 resource "azurerm_lb" "internal_lb" {
-  for_each            = { for inst in local.get_data : inst.unique_id => inst }
+  for_each            = { for index, inst in local.get_data : index => inst }
   name                = join("-", ["ari", local.naming.environment, local.env_location.locations_abbreviation, local.purpose_rg, "lbi", random_id.randomnumber.hex])
   location            = var.location
-  #resource_group_name = data.azurerm_resource_group.rg[each.key].name
-  resource_group_name =  data.azurerm_resource_group.rg["0"].name
+  resource_group_name =  data.azurerm_resource_group.rg[each.key].name
   sku                 = (lookup(each.value,"sku_name",null) != null && lookup(each.value,"sku_name","") != "") ? each.value.sku_name : var.sku_name
 
   frontend_ip_configuration {
     name                          = "internal-${local.purpose_rg}-server-feip"
-    #subnet_id                     = data.azurerm_subnet.subnet[each.key].id
-    subnet_id                     = data.azurerm_subnet.subnet["0"].id
-    private_ip_address            = var.private_ip_address  # Updated to use the variable
+    subnet_id                     = data.azurerm_subnet.subnet[each.key].id
+    private_ip_address            = var.private_ip_address
     private_ip_address_allocation = "Static"
   }
 }
@@ -93,7 +84,6 @@ resource "azurerm_lb" "internal_lb" {
 resource "azurerm_lb_backend_address_pool" "internal_lb_bepool" {
   for_each            = azurerm_lb.internal_lb
   loadbalancer_id     = azurerm_lb.internal_lb[each.key].id
-  #resource_group_name = azurerm_lb.internal_lb[each.key].resource_group_name
   name                = "internal-${local.purpose_rg}-server-bepool"
 }
 
@@ -112,13 +102,11 @@ resource "azurerm_lb_probe" "tcp_probe" {
 resource "azurerm_lb_rule" "tcp_rule" {
   for_each                       = azurerm_lb.internal_lb
   name                           = "internal-${local.purpose_rg}-server-tcp-lbrule"
-  #resource_group_name            = azurerm_lb.internal_lb[each.key].resource_group_name
   loadbalancer_id                = azurerm_lb.internal_lb[each.key].id
   protocol                       = "Tcp"
   frontend_port                  = 20000
   backend_port                   = 20000
   frontend_ip_configuration_name = azurerm_lb.internal_lb[each.key].frontend_ip_configuration[0].name
-  #backend_address_pool_ids        = ["azurerm_lb_backend_address_pool.internal_lb_bepool[each.key].id"]
   backend_address_pool_ids       = [azurerm_lb_backend_address_pool.internal_lb_bepool[each.key].id] 
   idle_timeout_in_minutes        = 5
   enable_floating_ip             = false
@@ -126,17 +114,16 @@ resource "azurerm_lb_rule" "tcp_rule" {
   disable_outbound_snat          = false
   probe_id                       = azurerm_lb_probe.tcp_probe[each.key].id
 }
+
 # Load Balancer HTTPS Rule
 resource "azurerm_lb_rule" "https_rule" {
   for_each = azurerm_lb.internal_lb
   name                           = "internal-${local.purpose_rg}-server-https-lbrule"
-  #resource_group_name            = azurerm_lb.internal_lb[each.key].resource_group_name
   loadbalancer_id                = azurerm_lb.internal_lb[each.key].id
   protocol                       = "Tcp"
   frontend_port                  = 443
   backend_port                   = 443
   frontend_ip_configuration_name = azurerm_lb.internal_lb[each.key].frontend_ip_configuration[0].name
-  #backend_address_pool_ids        = ["azurerm_lb.internal_lb[each.key].backend_address_pool[0].id"]
   backend_address_pool_ids       = [azurerm_lb_backend_address_pool.internal_lb_bepool[each.key].id] # Corrected here
   idle_timeout_in_minutes        = 4
   enable_floating_ip             = false
