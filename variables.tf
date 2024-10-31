@@ -24,6 +24,12 @@ variable "location_map" {
 
 }
 
+variable "RGname" {
+  description = "Optional existing Resource Group name. If not provided, it will be computed."
+  type        = string
+  default     = ""
+}
+
 variable "sku_name" {
   description = "SKU name for the Load Balancer."
   type        = string
@@ -42,17 +48,15 @@ variable "location" {
 }
 
 
-variable "purposeRG" {
+variable "purpose_rg" {
   type        = string
   default     = "default"
   description = "(Required) The purpose segment of the Resource Group name. Should not exceed 5 characters."
   validation {
-    condition     = strcontains(var.purposeRG, "-") ? length(var.purposeRG) <= 80 : length(var.purposeRG) <= 5
+    condition     = strcontains(var.purpose_rg, "-") ? length(var.purpose_rg) <= 80 : length(var.purpose_rg) <= 5
     error_message = "(Required) Purpose segment cannot exceed 5 characters. Name cannot exceed 80."
   }  
  }
-
-
 
 # Define the name for the subnet
 variable "subnetname" {
@@ -70,6 +74,5 @@ variable "purpose" {
   description = "Purpose of the resources, used in naming conventions."
   type        = string
 }
-
 
 
