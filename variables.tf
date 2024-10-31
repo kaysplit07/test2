@@ -60,8 +60,10 @@ variable "purpose_rg" {
 
 # Define the name for the subnet
 variable "subnetname" {
-  description = "The name of the subnet to be used in the virtual network."
-  type        = string
+  type = string
+  default = "5874-dev-eus2-aks-snet-02"
+#  sensitive = true
+  
 }
 
 variable "private_ip_address" {
