@@ -60,11 +60,16 @@ variable "subnetname" {
   type        = string
 }
 
-
-
-# Optional variable for the CSV file path, if different from default
-variable "parameters_file_path" {
-  description = "The path to the parameters CSV file."
+variable "private_ip_address" {
+  description = "The private IP address to assign to the load balancer frontend configuration."
   type        = string
-  default     = "../parameters.csv"
+  default     = "10.82.58.234"  # You can change the default value as needed
 }
+
+variable "purpose" {
+  description = "Purpose of the resources, used in naming conventions."
+  type        = string
+}
+
+
+
