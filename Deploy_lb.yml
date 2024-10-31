@@ -10,8 +10,7 @@ on:
         options:
           - Create (with New RG)
           - Create (with Existing RG)
-          - Update
-          - Remove (Not Available - upcoming functionality)
+          - Remove
         default: "Create (with New RG)"
       environment:
         type: choice
@@ -113,7 +112,7 @@ jobs:
       private_ip_address:        '${{inputs.private_ip_address}}'
   
   load_balancer_remove:
-    if: (github.event.inputs.requesttype == 'Remove (Destroy LB)')
+    if: (github.event.inputs.requesttype == 'Remove')
     name: 'Maintain Load Balancer ${{inputs.purpose}}'
     uses: ./.github/workflows/LBCreate.yml
     secrets:
