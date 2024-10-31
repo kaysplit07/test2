@@ -43,6 +43,9 @@ on:
         type: string
         required: true
         description: Purpose of the Load Balancer
+      RGname:
+          type: string
+          required: false
       purposeRG:
         type: string
         required: true
@@ -88,6 +91,7 @@ jobs:
       location:                  '${{inputs.location}}'
       sku_name:                  '${{inputs.sku_name}}'
       purpose:                   '${{inputs.purpose}}'
+      RGname:                    '${{inputs.RGname}}'
       purposeRG:                 '${{inputs.purposeRG}}'
       subnetName:                '${{inputs.subnetName}}'
       private_ip_address:        '${{inputs.private_ip_address}}'
@@ -109,6 +113,7 @@ jobs:
       purpose:                   '${{inputs.purpose}}'
       purposeRG:                 '${{inputs.purposeRG}}'
       subnetName:                '${{inputs.subnetName}}'
+      RGname:                    '${{inputs.RGname}}'
       private_ip_address:        '${{inputs.private_ip_address}}'
   
   load_balancer_remove:
@@ -127,5 +132,6 @@ jobs:
       sku_name:                  '${{inputs.sku_name}}'
       purpose:                   '${{inputs.purpose}}'
       purposeRG:                 '${{inputs.purposeRG}}'
+      RGname:                    '${{inputs.RGname}}'
       subnetName:                '${{inputs.subnetName}}'
       private_ip_address:        '${{inputs.private_ip_address}}'
