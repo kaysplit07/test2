@@ -8,21 +8,20 @@ terraform {
     storage_account_name = "6425dveus2aristb01"
     container_name       = "terraform-state"
     key                  = "LoadBalancer-terraform.tfstate"
-    # Access key should be provided securely, e.g., via environment variable or secret store
-    # access_key           = var.storage_account_access_key
+    access_key           = var.storage_account_access_key  # Changed to use variable
   }
 }
 
-data "azurerm_subscription" "current" {}  # Read the current subscription info
+data "azurerm_subscription" "current" {}  // Read the current subscription info
 
-data "azurerm_client_config" "clientconfig" {}  # Read the current client config
+data "azurerm_client_config" "clientconfig" {} // Read the current client config
 
 locals {
   get_data = csvdecode(file("../parameters.csv"))
-  # Define data for naming standards
+  // Define data for naming standards
   naming = {
-    bu                = lower(split("-", data.azurerm_subscription.current.display_name)[1])  # Read app/bu from the subscription data block
-    environment       = lower(split("-", data.azurerm_subscription.current.display_name)[2])  # Read environment from subscription data block
+    bu                = lower(split("-", data.azurerm_subscription.current.display_name)[1])  // Read app/bu from the subscription data block
+    environment       = lower(split("-", data.azurerm_subscription.current.display_name)[2])  // Read environment from subscription data block
     locations         = var.location
     nn                = lower(split("-", data.azurerm_subscription.current.display_name)[3])
     subscription_name = data.azurerm_subscription.current.display_name
@@ -33,20 +32,22 @@ locals {
     locations_abbreviation = var.location_map[local.naming.locations]
   }
 
-  # Extract the full purpose (including sequence) from RGname or var.purpose
+  // Extract the full purpose (including sequence) from RGname or var.purpose
   purpose_full = var.RGname != "" ? lower(split("-", var.RGname)[3]) : var.purpose
 
-  # Split the purpose_full into purpose and sequence
+  // Split the purpose_full into purpose and sequence
   purpose_parts = split("/", local.purpose_full)
 
-  # Assign purpose and sequence, defaulting sequence to "01" if not provided
-  purpose    = local.purpose_parts[0]
-  sequence   = length(local.purpose_parts) > 1 ? local.purpose_parts[1] : "01"
+  // Assign purpose and sequence, defaulting sequence to "01" if not provided
+  purpose      = local.purpose_parts[0]
+  sequence     = length(local.purpose_parts) > 1 ? local.purpose_parts[1] : "01"
+
+  // Use the purpose for the resource group naming
   purpose_rg = local.purpose
 }
 
 data "azurerm_resource_group" "rg" {
-  for_each = { for inst in local.get_data : inst.unique_id => inst }
+  for_each = { for index, inst in local.get_data : index => inst }
   name     = join("-", [local.naming.bu, local.naming.environment, local.env_location.locations_abbreviation, local.purpose, "rg"])
 }
 
@@ -55,38 +56,26 @@ output "resource_group_name" {
 }
 
 data "azurerm_virtual_network" "vnet" {
-  for_each = { for inst in local.get_data : inst.unique_id => inst }
-  name = coalesce(
-    each.value.vnet_name,
-    join("-", [local.naming.bu, local.naming.environment, local.env_location.locations_abbreviation, "vnet", local.naming.nn])
-  )
-  resource_group_name = coalesce(
-    each.value.vnet_resource_group,
-    join("-", [local.naming.bu, local.naming.environment, local.env_location.locations_abbreviation, "spokenetwork-rg"])
-  )
+  for_each = { for index, inst in local.get_data : index => inst }
+  name = (lookup(each.value, "vnet_name", null) != null && lookup(each.value, "vnet_name", "") != "") ? each.value.vnet_name : join("-", [local.naming.bu, local.naming.environment, local.env_location.locations_abbreviation, "vnet", local.naming.nn])
+  resource_group_name = (lookup(each.value, "vnet_resource_group", null) != null && lookup(each.value, "vnet_resource_group", "") != "") ? each.value.vnet_resource_group : join("-", [local.naming.bu, local.naming.environment, local.env_location.locations_abbreviation, "spokenetwork-rg"])
 }
 
 output "virtual_network_id" {
-  value      = data.azurerm_virtual_network.vnet
-  sensitive  = true
+  value     = data.azurerm_virtual_network.vnet
+  sensitive = true
 }
 
 data "azurerm_subnet" "subnet" {
-  for_each = { for inst in local.get_data : inst.unique_id => inst }
-  name = coalesce(
-    each.value.subnet_name,
-    var.subnetname  # lz<app>-<env>-<region>-<purpose>-snet-<nn>
-  )
+  for_each = { for index, inst in local.get_data : index => inst }
+  name                 = (lookup(each.value, "subnet_name", null) != null && lookup(each.value, "subnet_name", "") != "") ? each.value.subnet_name : var.subnetname
   virtual_network_name = data.azurerm_virtual_network.vnet[each.key].name
-  resource_group_name  = coalesce(
-    each.value.vnet_resource_group,
-    join("-", [local.naming.bu, local.naming.environment, local.env_location.locations_abbreviation, "spokenetwork-rg"])
-  )
+  resource_group_name  = (lookup(each.value, "vnet_resource_group", null) != null && lookup(each.value, "vnet_resource_group", "") != "") ? each.value.vnet_resource_group : join("-", [local.naming.bu, local.naming.environment, local.env_location.locations_abbreviation, "spokenetwork-rg"])
 }
 
 output "subnet_id" {
-  value      = data.azurerm_subnet.subnet
-  sensitive  = true
+  value     = data.azurerm_subnet.subnet
+  sensitive = true
 }
 
 # Azure Load Balancer Resource
@@ -95,17 +84,17 @@ resource "azurerm_lb" "internal_lb" {
   name                = join("-", ["ari", local.naming.environment, local.env_location.locations_abbreviation, local.purpose_rg, "lbi", local.sequence])
   location            = var.location
   resource_group_name = data.azurerm_resource_group.rg[each.key].name
-  sku                 = lookup(each.value, "sku_name", var.sku_name)
+  sku                 = (lookup(each.value, "sku_name", null) != null && lookup(each.value, "sku_name", "") != "") ? each.value.sku_name : var.sku_name
 
   frontend_ip_configuration {
     name                          = "internal-${local.purpose_rg}-server-feip"
     subnet_id                     = data.azurerm_subnet.subnet[each.key].id
-    private_ip_address            = var.private_ip_address  # Use the variable
+    private_ip_address            = var.private_ip_address  # Updated to use the variable
     private_ip_address_allocation = "Static"
   }
 }
 
-# Define Backend Address Pool
+# Define Backend Address Pool separately
 resource "azurerm_lb_backend_address_pool" "internal_lb_bepool" {
   for_each        = azurerm_lb.internal_lb
   loadbalancer_id = azurerm_lb.internal_lb[each.key].id
