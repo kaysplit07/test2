@@ -7,68 +7,6 @@ data "azurerm_subscription" "current" {}  // Read the current subscription info
 
 data "azurerm_client_config" "clientconfig" {} // Read the current client config
 
-// Variables
-variable "location" {
-  description = "The Azure location for the resources."
-  type        = string
-}
-
-variable "environment_map" {
-  type    = map(string)
-  default = {
-    dev  = "D"
-    test = "T"
-    prod = "P"
-    # Add other environments as needed
-  }
-}
-
-variable "location_map" {
-  type    = map(string)
-  default = {
-    eastus     = "EUS"
-    westus     = "WUS"
-    centralus  = "CUS"
-    # Add other locations as needed
-  }
-}
-
-variable "purpose" {
-  description = "The purpose of the resource."
-  type        = string
-  default     = ""
-}
-
-variable "purpose_rg" {
-  description = "The purpose resource group."
-  type        = string
-  default     = ""
-}
-
-variable "RGname" {
-  description = "Resource group name."
-  type        = string
-  default     = ""
-}
-
-variable "sku_name" {
-  description = "The SKU name for the Load Balancer."
-  type        = string
-  default     = "Standard"
-}
-
-variable "private_ip_address" {
-  description = "The private IP address to assign to the Load Balancer."
-  type        = string
-  default     = ""
-}
-
-variable "subnetname" {
-  description = "Name of the subnet."
-  type        = string
-  default     = ""
-}
-
 // Locals
 locals {
   get_data = csvdecode(file("../parameters.csv"))
