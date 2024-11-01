@@ -54,12 +54,8 @@ output "resource_group_name" {
 
 data "azurerm_virtual_network" "vnet" {
   for_each = { for index, inst in local.get_data : index => inst }
-  name = (lookup(each.value, "vnet_name", null) != null && lookup(each.value, "vnet_name", "") != "")
-    ? each.value.vnet_name
-    : join("-", [local.naming.bu, local.naming.environment, local.env_location.locations_abbreviation, "vnet", local.naming.nn])
-  resource_group_name = (lookup(each.value, "vnet_resource_group", null) != null && lookup(each.value, "vnet_resource_group", "") != "")
-    ? each.value.vnet_resource_group
-    : join("-", [local.naming.bu, local.naming.environment, local.env_location.locations_abbreviation, "spokenetwork-rg"])
+   name = (lookup(each.value, "vnet_name", null) != null && lookup(each.value, "vnet_name", "") != "") ? each.value.vnet_name : join("-", [local.naming.bu, local.naming.environment, local.env_location.locations_abbreviation, "vnet", local.naming.nn])
+   resource_group_name  = (lookup(each.value, "vnet_resource_group", null) != null && lookup(each.value, "vnet_resource_group", "") != "") ? each.value.vnet_resource_group : join("-", [local.naming.bu, local.naming.environment, local.env_location.locations_abbreviation, "spokenetwork-rg"]) 
 }
 
 output "virtual_network_id" {
