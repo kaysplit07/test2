@@ -47,7 +47,6 @@ variable "location" {
   default = "eastus2"
 }
 
-
 variable "purpose_rg" {
   type        = string
   default     = "default"
@@ -58,7 +57,6 @@ variable "purpose_rg" {
   }  
  }
 
-# Define the name for the subnet
 variable "subnetname" {
   type = string
   default = "5874-dev-eus2-aks-snet-02"
@@ -69,15 +67,11 @@ variable "subnetname" {
 variable "private_ip_address" {
   description = "The private IP address to assign to the load balancer frontend configuration."
   type        = string
-  default     = "10.82.58.234"  # You can change the default value as needed
+  default     = "10.82.58.234"  
 }
 
 variable "purpose" {
-  type = string
-  description = "purpose"
-  default = "test"
-  # validation {
-  #   condition = var.purpose==""
-  #   error_message = "purpose cannot be empty"
-  # }
+  description = "Purpose of the resources, used in naming conventions."
+  type        = string
 }
+
