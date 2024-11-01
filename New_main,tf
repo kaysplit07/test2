@@ -45,7 +45,7 @@ resource "random_integer" "lb_sequence" {
 // Data Resources
 data "azurerm_resource_group" "rg" {
   for_each = { for index, inst in local.get_data : index => inst }
-  name     = join("-", [local.naming.bu, local.naming.environment, local.env_location.locations_abbreviation, local.per_instance[each.key].purpose, "rg"])
+  name     = join("", [local.naming.bu, "-", local.naming.environment, "-", local.env_location.locations_abbreviation, "-", local.purpose, "-rg"]) 
 }
 
 output "resource_group_name" {
