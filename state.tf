@@ -21,6 +21,7 @@ variable "storage_account_name" {
 variable "resource_type" {
   description = "Type of resource for organizing state files"
   type        = string
+  default     = "loadbalancer"
 }
 
 variable "resource_name" {
