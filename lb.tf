@@ -17,14 +17,9 @@ data "azurerm_subscription" "current" {}  # Read the current subscription info
 
 data "azurerm_client_config" "clientconfig" {}  # Read the current client config
 
-data "terraform_remote_state" "vm_state" {
-  backend = "azurerm"
-  config = {
-    resource_group_name  = "your-vm-state-resource-group"
-    storage_account_name = "your-vm-state-storage-account"
-    container_name       = "terraform-state"
-    key                  = "windows-vm/terraform.tfstate"  # Adjust the key path if necessary
-  }
+data "azurerm_network_interface" "nic" {
+  name                = "your-nic-name" 
+  resource_group_name = "your-resource-group-name" 
 }
 
 
@@ -113,12 +108,10 @@ resource "azurerm_lb_backend_address_pool" "internal_lb_bepool" {
 }
 
 resource "azurerm_network_interface_backend_address_pool_association" "lb_backend_association" {
-  for_each                    = toset(data.terraform_remote_state.vm_state.outputs.nic_ids)
-  network_interface_id        = each.value
-  ip_configuration_name       = "ipconfig1"  # Update if your NICs use a different IP configuration name
-  backend_address_pool_id     = azurerm_lb_backend_address_pool.internal_lb_bepool["0"].id
+  network_interface_id    = data.azurerm_network_interface.nic.id
+  ip_configuration_name   = "ipconfig1"  # Update if your NIC uses a different IP configuration name
+  backend_address_pool_id = azurerm_lb_backend_address_pool.internal_lb_bepool["0"].id
 }
-
 
 # Load Balancer Probe
 resource "azurerm_lb_probe" "tcp_probe" {
