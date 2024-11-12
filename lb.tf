@@ -109,7 +109,7 @@ resource "azurerm_lb_backend_address_pool" "internal_lb_bepool" {
 resource "azurerm_network_interface_backend_address_pool_association" "lb_backend_association" {
   network_interface_id    = data.azurerm_network_interface.nic.id
   ip_configuration_name   = "ipconfig1"  # Update if your NIC uses a different IP configuration name
-  backend_address_pool_id = azurerm_lb_backend_address_pool.internal_lb_bepool.id
+  backend_address_pool_id = azurerm_lb_backend_address_pool.internal_lb_bepool[each.key].id
 }
 
 # Load Balancer Probe
