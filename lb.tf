@@ -8,7 +8,7 @@ terraform {
     storage_account_name = "6425dveus2aristb01"
     container_name       = "terraform-state"
     key                  = "LoadBalancer-terraform.tfstate"
-    access_key = "tVIYFQ6e40ROjRc0nr+Nb/elsHTiZJA/faJDC+hELRm6e9NMaGYuZTpHhUdhvMMlVgAUvjl1+Dol+AStp6ry6g==" 
+    access_key = "" 
   }
 }
 
@@ -18,8 +18,8 @@ data "azurerm_subscription" "current" {}  # Read the current subscription info
 data "azurerm_client_config" "clientconfig" {}  # Read the current client config
 
 data "azurerm_network_interface" "nic" {
-  name                = "your-nic-name" 
-  resource_group_name = "your-resource-group-name" 
+  name                = var.nic_name
+  resource_group_name = "6425-DEV-EUS2-SGS-RG" 
 }
 
 
@@ -106,11 +106,10 @@ resource "azurerm_lb_backend_address_pool" "internal_lb_bepool" {
   loadbalancer_id = azurerm_lb.internal_lb[each.key].id
   name            = "internal-${local.purpose_rg}-server-bepool"
 }
-
 resource "azurerm_network_interface_backend_address_pool_association" "lb_backend_association" {
   network_interface_id    = data.azurerm_network_interface.nic.id
   ip_configuration_name   = "ipconfig1"  # Update if your NIC uses a different IP configuration name
-  backend_address_pool_id = azurerm_lb_backend_address_pool.internal_lb_bepool["0"].id
+  backend_address_pool_id = azurerm_lb_backend_address_pool.internal_lb_bepool.id
 }
 
 # Load Balancer Probe
@@ -119,8 +118,8 @@ resource "azurerm_lb_probe" "tcp_probe" {
   name                = "internal-${local.purpose_rg}-server-tcp-probe"
   loadbalancer_id     = azurerm_lb.internal_lb[each.key].id
   protocol            = "Tcp"
-  port                = 20000
-  interval_in_seconds = 10
+  port                = 20005
+  interval_in_seconds = 5
   number_of_probes    = 5
 }
 
