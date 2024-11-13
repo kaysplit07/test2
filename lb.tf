@@ -1,7 +1,6 @@
 provider "azurerm" {
   features {}
 }
-
 terraform {
   backend "azurerm" {
     resource_group_name  = "test-dev-eus2-testing-rg"
@@ -11,7 +10,6 @@ terraform {
     access_key = "" 
   }
 }
-
 
 data "azurerm_subscription" "current" {}  # Read the current subscription info
 
@@ -106,10 +104,17 @@ resource "azurerm_lb_backend_address_pool" "internal_lb_bepool" {
   loadbalancer_id = azurerm_lb.internal_lb[each.key].id
   name            = "internal-${local.purpose_rg}-server-bepool"
 }
+# resource "azurerm_network_interface_backend_address_pool_association" "lb_backend_association" {
+#   network_interface_id    = data.azurerm_network_interface.nic.id
+#   ip_configuration_name   = "ipconfig1"  # Update if your NIC uses a different IP configuration name
+#   backend_address_pool_id = azurerm_lb_backend_address_pool.internal_lb_bepool[each.key].id
+# }
+
 resource "azurerm_network_interface_backend_address_pool_association" "lb_backend_association" {
-  network_interface_id    = data.azurerm_network_interface.nic.id
-  ip_configuration_name   = "ipconfig1"  # Update if your NIC uses a different IP configuration name
-  backend_address_pool_id = azurerm_lb_backend_address_pool.internal_lb_bepool[each.key].id
+  for_each                 = azurerm_lb_backend_address_pool.internal_lb_bepool
+  network_interface_id     = data.azurerm_network_interface.nic.id  # Assuming a single NIC; adjust if multiple.
+  ip_configuration_name    = "AZUSE-ACRIDV05-nic1_config"  # Update this if your NIC uses a different IP configuration name
+  backend_address_pool_id  = each.value.id
 }
 
 # Load Balancer Probe
@@ -155,4 +160,11 @@ resource "azurerm_lb_rule" "https_rule" {
   enable_tcp_reset               = false
   disable_outbound_snat          = false
   probe_id                       = azurerm_lb_probe.tcp_probe[each.key].id
+}
+
+
+variable "nic_name" {
+  type        = string
+  description = "Name of the network interface (NIC) to associate with the load balancer."
+  default = "AZUSE-ACRIDV05-nic-01"
 }
