@@ -77,7 +77,14 @@ variable "purpose" {
   type        = string
 }
 
-variable "nic_name" {
-  type        = string
-  description = "Name of the network interface (NIC) to associate with the load balancer."
+# variable "nic_name" {
+#   type        = string
+#   description = "Name of the network interface (NIC) to associate with the load balancer."
+#   default = "AZUSE-ACRIDV05-nic-01"
+# }
+
+variable "vm_name" {
+  type = string
+  description = "NAme pf VM for for NIC IP configuration."
+  default ="AZUSE-ACRIDV05"
 }
