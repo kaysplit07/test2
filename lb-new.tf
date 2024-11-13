@@ -16,7 +16,9 @@ data "azurerm_subscription" "current" {}  # Read the current subscription info
 data "azurerm_client_config" "clientconfig" {}  # Read the current client config
 
 data "azurerm_network_interface" "nic" {
-  name                = join("-", [var.vm_name, "nic-01" ])
+  for_each = { for idx, name in var.vm_names : idx => name }
+
+  name                = join("-", [each.value, "nic-01"])
   resource_group_name = join("-", [local.naming.bu, local.naming.environment, local.env_location.locations_abbreviation, local.purpose, "rg"])
 }
 
@@ -104,17 +106,20 @@ resource "azurerm_lb_backend_address_pool" "internal_lb_bepool" {
   loadbalancer_id = azurerm_lb.internal_lb[each.key].id
   name            = "internal-${local.purpose_rg}-server-bepool"
 }
-# resource "azurerm_network_interface_backend_address_pool_association" "lb_backend_association" {
-#   network_interface_id    = data.azurerm_network_interface.nic.id
-#   ip_configuration_name   = "ipconfig1"  # Update if your NIC uses a different IP configuration name
-#   backend_address_pool_id = azurerm_lb_backend_address_pool.internal_lb_bepool[each.key].id
-# }
+
 
 resource "azurerm_network_interface_backend_address_pool_association" "lb_backend_association" {
-  for_each                 = azurerm_lb_backend_address_pool.internal_lb_bepool
-  network_interface_id     = data.azurerm_network_interface.nic.id  # Assuming a single NIC; adjust if multiple.
-  ip_configuration_name    =  join("-", [var.vm_name, "nic1_config" ]) #"AZUSE-ACRIDV05-nic1_config"  # Update this if your NIC uses a different IP configuration name
-  backend_address_pool_id  = each.value.id
+  for_each = {
+    for idx, pool in azurerm_lb_backend_address_pool.internal_lb_bepool : idx => {
+      pool_id = pool.id
+      nic_id  = data.azurerm_network_interface.nic[idx].id
+      vm_name = var.vm_names[idx]
+    }
+  }
+
+  network_interface_id    = each.value.nic_id
+  ip_configuration_name   = join("-", [each.value.vm_name, "nic1_config"])
+  backend_address_pool_id = each.value.pool_id
 }
 
 # Load Balancer Probe
