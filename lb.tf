@@ -1,7 +1,6 @@
 provider "azurerm" {
   features {}
 }
-
 terraform {
   backend "azurerm" {
     resource_group_name  = "test-dev-eus2-testing-rg"
@@ -12,14 +11,13 @@ terraform {
   }
 }
 
-
 data "azurerm_subscription" "current" {}  # Read the current subscription info
 
 data "azurerm_client_config" "clientconfig" {}  # Read the current client config
 
 data "azurerm_network_interface" "nic" {
-  name                = var.nic_name
-  resource_group_name = "6425-DEV-EUS2-SGS-RG" 
+  name                = join("-", [var.vm_name, "nic-01" ])
+  resource_group_name = join("-", [local.naming.bu, local.naming.environment, local.env_location.locations_abbreviation, local.purpose, "rg"])
 }
 
 
@@ -106,10 +104,17 @@ resource "azurerm_lb_backend_address_pool" "internal_lb_bepool" {
   loadbalancer_id = azurerm_lb.internal_lb[each.key].id
   name            = "internal-${local.purpose_rg}-server-bepool"
 }
+# resource "azurerm_network_interface_backend_address_pool_association" "lb_backend_association" {
+#   network_interface_id    = data.azurerm_network_interface.nic.id
+#   ip_configuration_name   = "ipconfig1"  # Update if your NIC uses a different IP configuration name
+#   backend_address_pool_id = azurerm_lb_backend_address_pool.internal_lb_bepool[each.key].id
+# }
+
 resource "azurerm_network_interface_backend_address_pool_association" "lb_backend_association" {
-  network_interface_id    = data.azurerm_network_interface.nic.id
-  ip_configuration_name   = "ipconfig1"  # Update if your NIC uses a different IP configuration name
-  backend_address_pool_id = azurerm_lb_backend_address_pool.internal_lb_bepool[each.key].id
+  for_each                 = azurerm_lb_backend_address_pool.internal_lb_bepool
+  network_interface_id     = data.azurerm_network_interface.nic.id  # Assuming a single NIC; adjust if multiple.
+  ip_configuration_name    =  join("-", [var.vm_name, "nic1_config" ]) #"AZUSE-ACRIDV05-nic1_config"  # Update this if your NIC uses a different IP configuration name
+  backend_address_pool_id  = each.value.id
 }
 
 # Load Balancer Probe
