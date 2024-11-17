@@ -83,7 +83,7 @@ variable "purpose" {
 #   default = "AZUSE-ACRIDV05-nic-01"
 # }
 
-variable "vm_name" {
+variable "vm_names" {
   type        = list(string)
   description = "List of VM names for NIC IP configuration."
   default     = ["AZUSE-ACIRDVWS", "VM-1", "VM-2"]
