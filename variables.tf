@@ -84,7 +84,7 @@ variable "purpose" {
 # }
 
 variable "vm_name" {
-  type = string
-  description = "NAme pf VM for for NIC IP configuration."
-  default ="AZUSE-ACRIDV05"
+  type        = list(string)
+  description = "List of VM names for NIC IP configuration."
+  default     = ["AZUSE-ACIRDVWS", "VM-1", "VM-2"]
 }
